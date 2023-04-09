@@ -1,59 +1,120 @@
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import List from "@mui/material/List";
-import Collapse from "@mui/material/Collapse";
-import InboxIcon from "@mui/icons-material/MoveToInbox";
-import SendIcon from "@mui/icons-material/Send";
-import ExpandLess from "@mui/icons-material/ExpandLess";
-import ExpandMore from "@mui/icons-material/ExpandMore";
-import {Link} from "react-router-dom";
-import {useEffect, useState} from "react";
-
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import List from '@mui/material/List';
+import Collapse from '@mui/material/Collapse';
+import ExpandLess from '@mui/icons-material/ExpandLess';
+import ExpandMore from '@mui/icons-material/ExpandMore';
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
+import AssessmentOutlinedIcon from '@mui/icons-material/AssessmentOutlined';
+import StorefrontOutlinedIcon from '@mui/icons-material/StorefrontOutlined';
+import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
+import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 var listSideBar = [
   {
-    name: "Dashboard",
-    link: "/dashboard",
-    icon: <SendIcon />,
+    name: 'Dashboard',
+    link: '/dashboard',
+    icon: <DashboardOutlinedIcon />,
   },
   {
-    name: "Product",
-    link: "/product",
-    icon: <SendIcon />,
+    name: 'Category',
+    link: '/category',
+    icon: <Inventory2OutlinedIcon />,
     open: true,
     subMenu: [
       {
-        name: "Add Product",
-        link: "/add-product",
-        icon: <SendIcon />,
+        name: 'Add Category',
+        link: '/add-category',
       },
       {
-        name: "Dashboard",
-        link: "/dashboard",
-        icon: <SendIcon />,
+        name: 'List Category',
+        link: '/list-category',
       },
     ],
   },
   {
-    name: "User",
-    link: "/user",
-    open: false,
-    icon: <SendIcon />,
+    name: 'Product',
+    link: '/product',
+    icon: <ShoppingCartOutlinedIcon />,
+    open: true,
+    subMenu: [
+      {
+        name: 'Add Product',
+        link: '/add-product',
+      },
+      {
+        name: 'List Product',
+        link: '/list-product',
+      },
+      {
+        name: 'Report Product',
+        link: '/report-product',
+      },
+    ],
   },
   {
-    name: "Dashboard",
-    link: "/dashboard",
-    icon: <SendIcon />,
+    name: 'User',
+    link: '/user',
+    open: true,
+    icon: <GroupOutlinedIcon />,
+    subMenu: [
+      {
+        name: 'Add User',
+        link: '/add-user',
+      },
+      {
+        name: 'List User',
+        link: '/list-user',
+      },
+      {
+        name: 'Report User',
+        link: '/report-user',
+      },
+    ],
+  },
+  {
+    name: 'Store',
+    link: '/store',
+    open: false,
+    icon: <StorefrontOutlinedIcon />,
+    subMenu: [
+      {
+        name: 'Add Store',
+        link: '/add-store',
+      },
+      {
+        name: 'List Store',
+        link: '/list-store',
+      },
+      {
+        name: 'Report Store',
+        link: '/report-store',
+      },
+    ],
+  },
+  {
+    name: 'Summary',
+    link: '/summary',
+    icon: <AssessmentOutlinedIcon />,
+  },
+  {
+    name: 'Banner',
+    link: '/banner',
+    icon: <TableChartOutlinedIcon />,
   },
 ];
 
-export default function Sidebar({drawOpen}) {
+export default function Sidebar({ drawOpen }) {
   const [data, setData] = useState(listSideBar);
 
   useEffect(() => {
     const newData = data.map((obj) => {
       if (!drawOpen) {
-        return {...obj, open: false};
+        return { ...obj, open: false };
       }
       return obj;
     });
@@ -61,10 +122,11 @@ export default function Sidebar({drawOpen}) {
   }, [drawOpen]);
 
   const updateStatus = (index) => {
+    if (!drawOpen) return;
     const newData = data.map((obj, index2) => {
       if (index === index2) {
         const temp = obj.open && drawOpen;
-        return {...obj, open: !temp};
+        return { ...obj, open: !temp };
       }
       return obj;
     });
@@ -73,7 +135,13 @@ export default function Sidebar({drawOpen}) {
 
   return (
     <List
-      sx={{width: "100%", maxWidth: 360, bgcolor: "background.paper"}}
+      sx={{
+        padding: 0,
+        width: '100%',
+        maxWidth: 360,
+        bgcolor: 'background.paper',
+        height: 'calc(100vh - 67px)',
+      }}
       component="nav"
       aria-labelledby="nested-list-subheader"
     >
@@ -94,18 +162,18 @@ export default function Sidebar({drawOpen}) {
             </ListItemButton>
             <Collapse in={item?.open} timeout="auto" unmountOnExit>
               {item?.subMenu.map((sub) => (
-                <Link to={sub?.link}>
+                <Link to={item.link + sub?.link}>
                   <List component="div" disablePadding>
-                    <ListItemButton sx={{pl: 4}}>
+                    <ListItemButton sx={{ pl: 4 }}>
                       <ListItemIcon>{sub?.icon}</ListItemIcon>
-                      <ListItemText primary={sub?.name} />
+                      <ListItemText primary={sub?.name} style={{ fontSize: 12 }} />
                     </ListItemButton>
                   </List>
                 </Link>
               ))}
             </Collapse>
           </div>
-        )
+        ),
       )}
     </List>
   );

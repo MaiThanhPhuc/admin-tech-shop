@@ -3,8 +3,16 @@ import PrivateRoute from "./PrivateRoute";
 import MainLayout from "../layout/MainLayout/MainLayout";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import NotFound from "../pages/NotFound/NotFound";
-import {User} from "../pages/User/User";
-import {Product} from "../pages/Product/Product";
+import {ListProduct} from "../pages/Product/ListProduct";
+import {AddProduct} from "../pages/Product/AddProduct";
+import {DetailProduct} from "../pages/Product/DetailProduct";
+import {ReportProduct} from "../pages/Product/ReportProduct";
+import {AddUser} from "../pages/User/AddUser";
+import {DetailUser} from "../pages/User/DetailUser";
+import {ListUser} from "../pages/User/ListUser";
+import {ReportUser} from "../pages/User/ReportUser";
+import AddCategory from "../pages/Category/AddCategory";
+import ListCategory from "../pages/Category/ListCategory";
 const MyRoutes = () => {
   return (
     <>
@@ -12,8 +20,26 @@ const MyRoutes = () => {
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} exact />
-            <Route path="/user" element={<User />} exact />
-            <Route path="/product" element={<Product />} exact />
+            <Route path="/product">
+              <Route path="add-product" element={<AddProduct />} exact />
+              <Route
+                path="detail-product/:id"
+                element={<DetailProduct />}
+                exact
+              />
+              <Route path="list-product" element={<ListProduct />} exact />
+              <Route path="report-product" element={<ReportProduct />} exact />
+            </Route>
+            <Route path="/user">
+              <Route path="add-user" element={<AddUser />} exact />
+              <Route path="detail-user/:id" element={<DetailUser />} exact />
+              <Route path="list-user" element={<ListUser />} exact />
+              <Route path="report-user" element={<ReportUser />} exact />
+            </Route>
+            <Route path="/category">
+              <Route path="add-category" element={<AddCategory />} exact />
+              <Route path="list-category" element={<ListCategory />} exact />
+            </Route>
           </Route>
         </Route>
         <Route path="*" element={<NotFound />} />
