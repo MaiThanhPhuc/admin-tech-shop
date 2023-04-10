@@ -37,74 +37,91 @@ var listSideBar = [
     ],
   },
   {
-    name: 'Product',
+    name: 'Quản lí sản phẩm',
     link: '/product',
     icon: <ShoppingCartOutlinedIcon />,
     open: true,
     subMenu: [
       {
-        name: 'Add Product',
+        name: 'Thêm sản phẩm',
         link: '/add-product',
       },
       {
-        name: 'List Product',
+        name: 'Tất cả sản phẩm',
         link: '/list-product',
       },
       {
-        name: 'Report Product',
+        name: 'Thống kê sản phẩm',
         link: '/report-product',
       },
     ],
   },
   {
-    name: 'User',
-    link: '/user',
-    open: true,
-    icon: <GroupOutlinedIcon />,
-    subMenu: [
-      {
-        name: 'Add User',
-        link: '/add-user',
-      },
-      {
-        name: 'List User',
-        link: '/list-user',
-      },
-      {
-        name: 'Report User',
-        link: '/report-user',
-      },
-    ],
-  },
-  {
-    name: 'Store',
+    name: 'Cửa hàng',
     link: '/store',
-    open: false,
     icon: <StorefrontOutlinedIcon />,
+    open: false,
     subMenu: [
       {
-        name: 'Add Store',
+        name: 'Thêm cửa hàng',
         link: '/add-store',
       },
       {
-        name: 'List Store',
+        name: 'Tất cả cửa hàng',
         link: '/list-store',
       },
       {
-        name: 'Report Store',
+        name: 'Thống kê cửa hàng',
         link: '/report-store',
       },
     ],
   },
   {
-    name: 'Summary',
+    name: 'Tài chính',
     link: '/summary',
     icon: <AssessmentOutlinedIcon />,
+    open: false,
+    subMenu: [
+      {
+        name: 'Doanh thu',
+        link: '/add-store',
+      },
+      {
+        name: 'Phương thức thanh toán',
+        link: '/list-store',
+      },
+    ],
+  },
+  {
+    name: 'Phân tích bán hàng',
+    link: '/summary',
+    icon: <AssessmentOutlinedIcon />,
+  },
+  {
+    name: 'Marketing',
+    link: '/banner',
+    icon: <TableChartOutlinedIcon />,
   },
   {
     name: 'Banner',
     link: '/banner',
     icon: <TableChartOutlinedIcon />,
+  },
+  {
+    name: 'Người dùng',
+    link: '/user',
+    open: true,
+    icon: <GroupOutlinedIcon />,
+    subMenu: [
+      {
+        name: 'Thêm người dùng',
+        link: '/add-user',
+      },
+      {
+        name: 'Danh sách người dùng',
+        link: '/list-user',
+      },
+    ],
   },
 ];
 

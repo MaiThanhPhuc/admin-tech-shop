@@ -14,7 +14,7 @@ import Sidebar from './component/Sidebar';
 import Navbar from './component/Navbar';
 import { Outlet } from 'react-router';
 
-const drawerWidth = 240;
+const drawerWidth = 260;
 
 const Drawer = styled(MuiDrawer, {
   shouldForwardProp: (prop) => prop !== 'open',

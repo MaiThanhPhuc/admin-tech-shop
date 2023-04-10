@@ -1,4 +1,23 @@
-import { Box, Button, Container, FormControl, Grid, ImageList, ImageListItem, MenuItem, Select, TextField, Typography } from '@mui/material';
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  Grid,
+  ImageList,
+  ImageListItem,
+  MenuItem,
+  Paper,
+  Select,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { useFormik } from 'formik';
 import { useState } from 'react';
 import ReactQuill from 'react-quill';
@@ -8,7 +27,7 @@ import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternate
 const categoryTest = ['etst', 'sets'];
 export function AddProduct() {
   const [images, setImages] = useState([]);
-
+  const [productOptions, setProductOptions] = useState([]);
   const handleMultipleImages = (evnt) => {
     const selectedFIles = [];
     const targetFiles = evnt.target.files;
@@ -33,9 +52,25 @@ export function AddProduct() {
       displaySize: '',
       cameraResolution: '',
       ram: '',
+      productOptions: [],
     },
     onSubmit: (values) => {
       alert(JSON.stringify(values, null, 2));
+    },
+  });
+
+  const productOptionForm = useFormik({
+    initialValues: {
+      optionName: '',
+      optionSub: '',
+      marketPrice: '',
+      promotion: '',
+      image: '',
+    },
+    onSubmit: (values) => {
+      setProductOptions([...productOptions, values]);
+      formik.setFieldValue('productOptions', productOptions);
+      productOptionForm.resetForm();
     },
   });
 
@@ -142,14 +177,14 @@ export function AddProduct() {
                 label="Description"
                 type="description"
                 theme="snow"
-                value={formik.values.description}
-                onChange={formik.handleChange}
                 style={{
                   flexBasis: '650px',
                   width: '650px',
                   maxWidth: '650px',
                   height: 300,
                 }}
+                value={formik.values.description}
+                onChange={formik.handleChange}
                 error={formik.touched.description && Boolean(formik.errors.description)}
                 helperText={formik.touched.description && formik.errors.description}
               />
@@ -246,6 +281,80 @@ export function AddProduct() {
             ))}
           </Grid>
         </Container>
+        {/* thông tin bán hàng */}
+
+        <Container sx={{ paddingY: '24px', bgcolor: '#fff', marginTop: 3, marginBottom: 10 }}>
+          <Typography sx={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Thông tin bán hàng</Typography>
+          <Grid container spacing={2}>
+            {inputPrice.map((item, index) => (
+              <Grid key={index} item xs={6}>
+                <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'start',
+                      marginRight: 2,
+                      fontSize: '14px',
+                      width: 140,
+                    }}
+                  >
+                    <label htmlFor={item.key}>{item.name}</label>
+                  </Box>
+                  <TextField
+                    sx={{
+                      width: '100%',
+                    }}
+                    size="small"
+                    id={item.key}
+                    name={item.key}
+                    value={productOptionForm.values[item.key]}
+                    onChange={productOptionForm.handleChange}
+                    error={productOptionForm.touched[item.key] && Boolean(productOptionForm.errors[item.key])}
+                    helperText={productOptionForm.touched[item.key] && productOptionForm.errors[item.key]}
+                  />
+                </Box>
+              </Grid>
+            ))}
+            <Grid item xs={6}>
+              <Button size="small" color="primary" sx={{ marginRight: 2 }} onClick={productOptionForm.resetForm}>
+                Làm mới
+              </Button>
+              <Button size="small" color="primary" variant="contained" onClick={productOptionForm.handleSubmit}>
+                Thêm phân loại
+              </Button>
+            </Grid>
+          </Grid>
+          {productOptions.length > 0 && (
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">Phân loại hàng 1</TableCell>
+                    <TableCell align="center">Phân loại hàng 2</TableCell>
+                    <TableCell align="center">Giá</TableCell>
+                    <TableCell align="center">Khuyến mãi</TableCell>
+                    <TableCell align="center">Hình ảnh</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {productOptions.map((row) => (
+                    <TableRow key={row.name} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      <TableCell align="center" component="th" scope="row">
+                        {row.optionName}
+                      </TableCell>
+                      <TableCell align="center">{row.optionSub}</TableCell>
+                      <TableCell align="center">{row.marketPrice}</TableCell>
+                      <TableCell align="center">{row.promotion}</TableCell>
+                      <TableCell align="center">
+                        <img src={row.image} alt={row.optionName} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Container>
 
         <div className="button-group">
           <Button size="small" type="submit" sx={{ marginRight: 2 }}>
@@ -300,5 +409,38 @@ var inputDataDetail = [
     value: '',
     isOption: true,
     optionValue: ['8GB', '32GB', '64GB'],
+  },
+];
+
+var inputPrice = [
+  {
+    name: 'Phân loại 1',
+    key: 'optionName',
+    value: '',
+    isRequired: true,
+  },
+  {
+    name: 'Phân loại 2',
+    key: 'optionSub',
+    value: '',
+    isRequired: false,
+  },
+  {
+    name: 'Giá',
+    key: 'marketPrice',
+    value: '',
+    isRequired: true,
+  },
+  {
+    name: 'Khuyến mãi',
+    key: 'promotion',
+    value: '',
+    isRequired: false,
+  },
+  {
+    name: 'Hình ảnh',
+    key: 'image',
+    value: '',
+    isRequired: false,
   },
 ];
