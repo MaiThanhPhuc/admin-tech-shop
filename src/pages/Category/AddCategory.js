@@ -15,7 +15,7 @@ function AddCategory() {
     let config = {
       method: 'get',
       maxBodyLength: Infinity,
-      url: 'https://kltn-ecommerce.herokuapp.com/api/category',
+      url: `${process.env.REACT_APP_BASE_URL}/category`,
       headers: {},
     };
 
