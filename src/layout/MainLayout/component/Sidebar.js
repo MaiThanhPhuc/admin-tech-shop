@@ -16,22 +16,22 @@ import TableChartOutlinedIcon from '@mui/icons-material/TableChartOutlined';
 import Inventory2OutlinedIcon from '@mui/icons-material/Inventory2Outlined';
 var listSideBar = [
   {
-    name: 'Dashboard',
+    name: 'Bảng điều khiển',
     link: '/dashboard',
     icon: <DashboardOutlinedIcon />,
   },
   {
-    name: 'Category',
+    name: 'Danh mục',
     link: '/category',
     icon: <Inventory2OutlinedIcon />,
     open: true,
     subMenu: [
       {
-        name: 'Add Category',
+        name: 'Thêm danh mục',
         link: '/add-category',
       },
       {
-        name: 'List Category',
+        name: 'Danh sách danh mục',
         link: '/list-category',
       },
     ],
@@ -110,7 +110,7 @@ var listSideBar = [
   {
     name: 'Người dùng',
     link: '/user',
-    open: true,
+    open: false,
     icon: <GroupOutlinedIcon />,
     subMenu: [
       {
