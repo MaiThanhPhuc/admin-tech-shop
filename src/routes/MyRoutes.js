@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
 import MainLayout from '../layout/MainLayout/MainLayout';
 import Dashboard from '../pages/Dashboard/Dashboard';
@@ -14,10 +14,12 @@ import { ReportUser } from '../pages/User/ReportUser';
 import AddCategory from '../pages/Category/AddCategory';
 import ListCategory from '../pages/Category/ListCategory';
 import AddStore from '../pages/Store/AddStore';
+import Login from '../pages/Login/Login';
 const MyRoutes = () => {
   return (
     <>
       <Routes>
+        <Route path="/login" element={<Login />} />
         <Route element={<PrivateRoute />}>
           <Route path="/" element={<MainLayout />}>
             <Route path="/dashboard" element={<Dashboard />} exact />
