@@ -11,11 +11,8 @@ const generateRespObj = (status, message, data) => {
 };
 
 class UserService {
-  async addCategory(name) {
-    const body = {
-      categoryName: name,
-    };
-    const response = await axios.post(API_URL + `/adminSys/category`, body, {
+  async addCategory(data) {
+    const response = await axios.post(API_URL + `/adminSys/category`, data, {
       headers: authHeader(),
     });
 
