@@ -19,15 +19,29 @@ import {
   Typography,
 } from '@mui/material';
 import { useFormik } from 'formik';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import './Product.scss';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
-const categoryTest = ['etst', 'sets'];
+import userService from '../../services/user.service';
+import { failPopUp, successPopUp } from '../../services/toast-up';
+
 export function AddProduct() {
   const [images, setImages] = useState([]);
   const [productOptions, setProductOptions] = useState([]);
+  const [specs, setSpecs] = useState([]);
+
+  const [initData, setInitData] = useState({});
+  useEffect(() => {
+    const fetchInitData = async () => {
+      const respCate = await userService.getAllCategory();
+      const respManu = await userService.getAllManufacture();
+      setInitData({ ...initData, categories: respCate.data, manufacters: respManu.data });
+    };
+    fetchInitData();
+  }, []);
+
   const handleMultipleImages = (evnt) => {
     const selectedFIles = [];
     const targetFiles = evnt.target.files;
@@ -35,40 +49,95 @@ export function AddProduct() {
     targetFilesObject.map((file) => {
       return selectedFIles.push(URL.createObjectURL(file));
     });
-
     setImages(selectedFIles);
+  };
+
+  const converToSpecObj = () => {
+    let specObjs = [];
+    specs.forEach((spec) => {
+      const specObj = specObjs.find((specObj) => specObj.groupName === spec.specGroup);
+      if (specObj) {
+        specObj.groupItems.push({
+          name: spec.tskt,
+          value: spec.specValue,
+        });
+      } else {
+        specObjs.push({
+          groupName: spec.specGroup,
+          groupItems: [
+            {
+              name: spec.tskt,
+              value: spec.specValue,
+            },
+          ],
+        });
+      }
+    });
+
+    return specObjs;
+  };
+
+  const addProduct = async (commonValues, specs, prodOtions) => {
+    let productObj = {
+      name: commonValues.name,
+      description: commonValues.description,
+      video: commonValues.video,
+      // thumbnail: commonValues.image,
+      category: {
+        slug: commonValues.category,
+      },
+      manufacturer: {
+        slug: commonValues.brand,
+      },
+    };
+    const specObjs = converToSpecObj(specs);
+    productObj = { ...productObj, specifications: specObjs, productOptions: prodOtions };
+
+    const resp = await userService.addProduct(productObj);
+
+    if (resp.status === 200) {
+      successPopUp('Add Product Successfully.');
+    } else {
+      failPopUp(resp.data);
+    }
   };
 
   const formik = useFormik({
     initialValues: {
       name: '',
       video: '',
-      image: [],
+      thumb: '',
       category: '',
       description: '',
       brand: '',
-      battery: '',
-      memory: '',
-      displaySize: '',
-      cameraResolution: '',
-      ram: '',
-      productOptions: [],
     },
     onSubmit: (values) => {
-      alert(JSON.stringify(values, null, 2));
+      addProduct(values, specs, productOptions);
+    },
+  });
+
+  const spectsForm = useFormik({
+    initialValues: {
+      specGroup: '',
+      tskt: '',
+      specValue: '',
+    },
+    onSubmit: (values) => {
+      setSpecs([...specs, values]);
     },
   });
 
   const productOptionForm = useFormik({
     initialValues: {
       optionName: '',
-      optionSub: '',
       marketPrice: '',
       promotion: '',
-      image: '',
+      color: '',
+      pictures: [],
     },
     onSubmit: (values) => {
-      setProductOptions([...productOptions, values]);
+      values.pictures = [values.pictures];
+      setProductOptions((prev) => [...prev, values]);
       formik.setFieldValue('productOptions', productOptions);
       productOptionForm.resetForm();
     },
@@ -94,7 +163,7 @@ export function AddProduct() {
                 fontSize: '14px',
               }}
             >
-              <label htmlFor="name">*Hình ảnh sản phẩm</label>
+              <label htmlFor="name">*Thumbnail sản phẩm</label>
             </Box>
             <Box>
               <FormControl
@@ -105,13 +174,13 @@ export function AddProduct() {
                 }}
                 fullWidth
               >
-                <label htmlFor="image" className="custom-input-image">
+                <label htmlFor="thumb" className="custom-input-image">
                   <div className="custom-input-image-body">
                     <AddPhotoAlternateOutlinedIcon />
-                    Thêm hình ảnh
+                    Thêm Thumbnail
                   </div>
                 </label>
-                <input multiple onChange={handleMultipleImages} id="image" name="image" type="file" hidden />
+                <input onChange={handleMultipleImages} id="thumb" name="thumb" type="file" hidden />
                 {images.length > 0 && (
                   <ImageList sx={{ width: 650, height: 450 }} cols={3} rowHeight={164}>
                     {images.map((item) => (
@@ -124,6 +193,7 @@ export function AddProduct() {
               </FormControl>
             </Box>
           </Box>
+
           <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
             <Box
               sx={{
@@ -152,6 +222,38 @@ export function AddProduct() {
                 onChange={formik.handleChange}
                 error={formik.touched.name && Boolean(formik.errors.name)}
                 helperText={formik.touched.name && formik.errors.name}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+            <Box
+              sx={{
+                flexBasis: '650px',
+                width: '650px',
+                maxWidth: '650px',
+                display: 'flex',
+                justifyContent: 'end',
+                marginRight: 2,
+                fontSize: '14px',
+              }}
+            >
+              <label htmlFor="video">*Video sản phẩm</label>
+            </Box>
+            <Box>
+              <TextField
+                sx={{
+                  flexBasis: '650px',
+                  width: '650px',
+                  maxWidth: '650px',
+                }}
+                size="small"
+                id="video"
+                name="video"
+                value={formik.values.video}
+                onChange={formik.handleChange}
+                error={formik.touched.video && Boolean(formik.errors.video)}
+                helperText={formik.touched.video && formik.errors.video}
               />
             </Box>
           </Box>
@@ -190,6 +292,39 @@ export function AddProduct() {
               />
             </Box>
           </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+            <Box
+              sx={{
+                flexBasis: '650px',
+                width: '650px',
+                maxWidth: '650px',
+                display: 'flex',
+                justifyContent: 'end',
+                marginRight: 2,
+                fontSize: '14px',
+              }}
+            >
+              <label>*Thương hiệu</label>
+            </Box>
+            <Box>
+              <FormControl
+                sx={{
+                  flexBasis: '650px',
+                  width: '650px',
+                  maxWidth: '650px',
+                }}
+                fullWidth
+              >
+                <Select size="small" value={formik.values['brand']} onChange={(e) => handleChangeSelect('brand', e)}>
+                  {initData?.manufacters?.map((manu) => (
+                    <MenuItem key={manu.slug} value={manu.slug}>
+                      {manu.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
             <Box
@@ -221,65 +356,131 @@ export function AddProduct() {
                   value={formik.values.category}
                   onChange={(e) => handleChangeSelect('category', e)}
                 >
-                  {categoryTest.map((item, index) => (
-                    <MenuItem value={index}>{item}</MenuItem>
+                  {initData?.categories?.map((item) => (
+                    <MenuItem key={item.slug} value={item.slug}>
+                      {item.categoryName}
+                    </MenuItem>
                   ))}
                 </Select>
               </FormControl>
             </Box>
           </Box>
         </Container>
-        {/* chi tiet */}
+        {/* THONG TIN CHI TIET */}
         <Container sx={{ paddingY: '24px', bgcolor: '#fff', marginTop: 3 }}>
           <Typography sx={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Thông tin chi tiết</Typography>
           <Grid container spacing={2}>
-            {inputDataDetail.map((item, index) => (
-              <Grid key={index} item xs={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'start',
-                      marginRight: 2,
-                      fontSize: '14px',
-                      width: 140,
-                    }}
-                  >
-                    <label htmlFor={item.key}>{item.name}</label>
-                  </Box>
-                  {item?.isOption ? (
-                    <FormControl
-                      sx={{
-                        width: '100%',
-                      }}
-                      fullWidth
-                    >
-                      <Select size="small" value={formik.values[item.key]} onChange={(e) => handleChangeSelect(item.key, e)}>
-                        {item?.optionValue.map((item2, index) => (
-                          <MenuItem key={index} value={item2}>
-                            {item2}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ) : (
-                    <TextField
-                      sx={{
-                        width: '100%',
-                      }}
-                      size="small"
-                      id={item.key}
-                      name={item.key}
-                      value={formik.values[item.key]}
-                      onChange={formik.handleChange}
-                      error={formik.touched[item.key] && Boolean(formik.errors[item.key])}
-                      helperText={formik.touched[item.key] && formik.errors[item.key]}
-                    />
-                  )}
+            <Grid item xs={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'start',
+                    marginRight: 2,
+                    fontSize: '14px',
+                    width: 140,
+                  }}
+                >
+                  <label htmlFor="specGroup">Nhóm TSKT</label>
                 </Box>
-              </Grid>
-            ))}
+                <TextField
+                  sx={{
+                    width: '100%',
+                  }}
+                  size="small"
+                  id="specGroup"
+                  name="specGroup"
+                  value={spectsForm.values['specGroup']}
+                  onChange={spectsForm.handleChange}
+                  error={spectsForm.touched['specGroup'] && Boolean(spectsForm.errors['specGroup'])}
+                  helperText={spectsForm.touched['specGroup'] && spectsForm.errors['specGroup']}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'start',
+                    marginRight: 2,
+                    fontSize: '14px',
+                    width: 140,
+                  }}
+                >
+                  <label htmlFor="tskt">TSKT</label>
+                </Box>
+                <TextField
+                  sx={{
+                    width: '100%',
+                  }}
+                  size="small"
+                  id="tskt"
+                  name="tskt"
+                  value={spectsForm.values['tskt']}
+                  onChange={spectsForm.handleChange}
+                  error={spectsForm.touched['tskt'] && Boolean(spectsForm.errors['tskt'])}
+                  helperText={spectsForm.touched['tskt'] && spectsForm.errors['tskt']}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'start',
+                    marginRight: 2,
+                    fontSize: '14px',
+                    width: 140,
+                  }}
+                >
+                  <label htmlFor="specValue">Thông số</label>
+                </Box>
+                <TextField
+                  sx={{
+                    width: '100%',
+                  }}
+                  size="small"
+                  id="specValue"
+                  name="specValue"
+                  value={spectsForm.values['specValue']}
+                  onChange={spectsForm.handleChange}
+                  error={spectsForm.touched['specValue'] && Boolean(spectsForm.errors['specValue'])}
+                  helperText={spectsForm.touched['specValue'] && spectsForm.errors['specValue']}
+                />
+              </Box>
+            </Grid>
+            <Grid item xs={6}>
+              <Button size="small" color="primary" variant="contained" onClick={spectsForm.handleSubmit}>
+                Thêm Thông số kỹ thuật
+              </Button>
+            </Grid>
           </Grid>
+          {specs.length > 0 && (
+            <TableContainer component={Paper}>
+              <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                <TableHead>
+                  <TableRow>
+                    <TableCell align="center">Nhóm</TableCell>
+                    <TableCell align="center">Tên TSKT</TableCell>
+                    <TableCell align="center">Giá trị TSKT</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {specs.map((spec) => (
+                    <TableRow key={spec.specGroup} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      <TableCell align="center" component="th" scope="row">
+                        {spec.specGroup}
+                      </TableCell>
+                      <TableCell align="center">{spec.specValue}</TableCell>
+                      <TableCell align="center">{spec.tskt}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Container>
         {/* thông tin bán hàng */}
 
@@ -329,8 +530,8 @@ export function AddProduct() {
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
                   <TableRow>
-                    <TableCell align="center">Phân loại hàng 1</TableCell>
-                    <TableCell align="center">Phân loại hàng 2</TableCell>
+                    <TableCell align="center">Tên phân loại</TableCell>
+                    <TableCell align="center">Màu</TableCell>
                     <TableCell align="center">Giá</TableCell>
                     <TableCell align="center">Khuyến mãi</TableCell>
                     <TableCell align="center">Hình ảnh</TableCell>
@@ -342,7 +543,7 @@ export function AddProduct() {
                       <TableCell align="center" component="th" scope="row">
                         {row.optionName}
                       </TableCell>
-                      <TableCell align="center">{row.optionSub}</TableCell>
+                      <TableCell align="center">{row.color}</TableCell>
                       <TableCell align="center">{row.marketPrice}</TableCell>
                       <TableCell align="center">{row.promotion}</TableCell>
                       <TableCell align="center">
@@ -414,16 +615,16 @@ var inputDataDetail = [
 
 var inputPrice = [
   {
-    name: 'Phân loại 1',
+    name: 'Tên phân loại',
     key: 'optionName',
     value: '',
     isRequired: true,
   },
   {
-    name: 'Phân loại 2',
-    key: 'optionSub',
+    name: 'Màu',
+    key: 'color',
     value: '',
-    isRequired: false,
+    isRequired: true,
   },
   {
     name: 'Giá',
@@ -439,7 +640,7 @@ var inputPrice = [
   },
   {
     name: 'Hình ảnh',
-    key: 'image',
+    key: 'pictures',
     value: '',
     isRequired: false,
   },

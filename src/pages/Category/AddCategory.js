@@ -1,64 +1,47 @@
 import { useState, useEffect } from 'react';
 import { Box, Button, Container, FormControl, InputLabel, MenuItem, Select, TextField, Typography } from '@mui/material';
 import LoadingButton from '@mui/lab/LoadingButton';
-import axios from 'axios';
 import SaveIcon from '@mui/icons-material/Save';
+import userService from '../../services/user.service';
+import { toast } from 'react-toastify';
+import { failPopUp, successPopUp } from '../../services/toast-up';
 
 function AddCategory() {
   const [categoryName, setCategoryName] = useState('');
   const [relatedCategoryData, setRelatedCategoryData] = useState();
   const [selectCategory, setSelectCategory] = useState();
   const [loading, setLoading] = useState(false);
+  const [choseCate, setChose] = useState();
 
-  useEffect(() => {
-    console.log('FETCH');
-    let config = {
-      method: 'get',
-      maxBodyLength: Infinity,
-      url: `${process.env.REACT_APP_BASE_URL}/category`,
-      headers: {},
-    };
-
-    axios
-      .request(config)
-      .then((response) => {
-        setRelatedCategoryData(response.data.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  useEffect(async () => {
+    await fetchAllCate();
   }, []);
 
-  const handleChange = (event) => {
+  const fetchAllCate = async () => {
+    const allCate = await userService.getAllCategory();
+    setRelatedCategoryData(allCate.data);
+  };
+
+  const handleChangeCateName = (event) => {
     setSelectCategory(event.target.value);
   };
 
-  const handleSave = () => {
-    setLoading((prev) => !prev);
-    let data = JSON.stringify({
-      categoryName: categoryName,
-    });
-    let config = {
-      method: 'post',
-      maxBodyLength: Infinity,
-      url: `${process.env.REACT_APP_BASE_URL}/adminSys/category`,
-      headers: {
-        Authorization:
-          'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NDI5NjliZWUxMTczOTZkNDg2YTRlMjMiLCJmaXJzdE5hbWUiOiJhZG1pblN5c3RlbSIsImxhc3ROYW1lIjoiYWRtaW5TeXN0ZW0iLCJyb2xlIjoiYWRtaW5TeXN0ZW0iLCJpc3MiOiJodHRwczovL2tsdG4tZWNvbW1lcmNlLmhlcm9rdWFwcC5jb20vYXBpL2xvZ2luIiwiaWQiOiJhZG1pblN5c3RlbSIsImV4cCI6MTY4MTkxMTY0OCwiZW1haWwiOiJhZG1pblN5c3RlbSIsImF2dCI6ImFkbWluU3lzdGVtIn0.hB4qmmRvHz1RCm6zU8gxTNqLKSC4snLEpjzzgftU7Tg',
-        'Content-Type': 'application/json',
-      },
-      data: data,
-    };
+  const choseSubCateHandler = (event) => {
+    console.log(event.target.value);
+    setChose(event.target.value);
+  };
 
-    axios
-      .request(config)
-      .then((response) => {
-        setLoading((prev) => !prev);
-      })
-      .catch((error) => {
-        setLoading((prev) => !prev);
-        console.log(error);
-      });
+  const handleSave = async () => {
+    setLoading((prev) => !prev);
+    console.log(categoryName);
+    const data = await userService.addCategory(categoryName);
+    setLoading((prev) => !prev);
+    if (data.status === 200) {
+      successPopUp('Add category success.');
+      await fetchAllCate();
+    } else {
+      failPopUp(data.data);
+    }
   };
 
   return (
@@ -97,11 +80,11 @@ function AddCategory() {
               labelId="demo-simple-select-autowidth-label"
               id="demo-simple-select-autowidth"
               value={selectCategory}
-              onChange={handleChange}
+              onChange={handleChangeCateName}
               label="Related Category"
             >
               {relatedCategoryData?.map((item) => (
-                <MenuItem key={item.id} value={item.categoryName}>
+                <MenuItem key={item.id} value={item.id} onChange={choseSubCateHandler}>
                   {item.categoryName}
                 </MenuItem>
               ))}
