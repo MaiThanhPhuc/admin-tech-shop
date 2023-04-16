@@ -11,7 +11,7 @@ function AddCategory() {
   const [relatedCategoryData, setRelatedCategoryData] = useState();
   const [selectCategory, setSelectCategory] = useState();
   const [loading, setLoading] = useState(false);
-  const [choseCate, setChose] = useState();
+  const [relatedCate, setRelatedCate] = useState();
 
   useEffect(() => {
     fetchAllCate();
@@ -22,19 +22,18 @@ function AddCategory() {
     setRelatedCategoryData(allCate.data);
   };
 
-  const handleChangeCateName = (event) => {
-    setSelectCategory(event.target.value);
-  };
-
   const choseSubCateHandler = (event) => {
-    console.log(event.target.value);
-    setChose(event.target.value);
+    setRelatedCate(event.target.value);
   };
 
   const handleSave = async () => {
     setLoading((prev) => !prev);
-    console.log(categoryName);
-    const data = await userService.addCategory(categoryName);
+    const cateReq = {
+      categoryName: categoryName,
+      relatedCategory: relatedCate,
+    };
+    console.log(cateReq);
+    const data = await userService.addCategory(cateReq);
     setLoading((prev) => !prev);
     if (data.status === 200) {
       successPopUp('Add category success.');
@@ -79,12 +78,11 @@ function AddCategory() {
             <Select
               labelId="demo-simple-select-autowidth-label"
               id="demo-simple-select-autowidth"
-              value={selectCategory}
-              onChange={handleChangeCateName}
+              onChange={(e) => choseSubCateHandler(e)}
               label="Related Category"
             >
               {relatedCategoryData?.map((item) => (
-                <MenuItem key={item.id} value={item.id} onChange={choseSubCateHandler}>
+                <MenuItem key={item.id} value={item.id}>
                   {item.categoryName}
                 </MenuItem>
               ))}
