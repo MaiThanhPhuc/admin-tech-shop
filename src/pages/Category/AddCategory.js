@@ -13,8 +13,8 @@ function AddCategory() {
   const [loading, setLoading] = useState(false);
   const [choseCate, setChose] = useState();
 
-  useEffect(async () => {
-    await fetchAllCate();
+  useEffect(() => {
+    fetchAllCate();
   }, []);
 
   const fetchAllCate = async () => {
