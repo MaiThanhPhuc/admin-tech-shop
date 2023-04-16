@@ -5,6 +5,8 @@ import axios from 'axios';
 import authHeader from '../../services/auth-header';
 import { LoadingButton } from '@mui/lab';
 import SaveIcon from '@mui/icons-material/Save';
+import userService from '../../services/user.service';
+import { failPopUp, successPopUp } from '../../services/toast-up';
 function AddStore() {
   const [inputDataDetail, setInputDataDetail] = useState(InputDataDetail);
   const [vnAddress, setVnAddress] = useState();
@@ -67,26 +69,24 @@ function AddStore() {
     });
   };
 
-  const saveNewShopHandler = (e) => {
+  const saveNewShopHandler = async (e) => {
     setLoading(true);
     e.preventDefault();
-    const addressUser = {
+    const addressStore = {
       province: InputDataDetail[0].value,
       district: InputDataDetail[1].value,
       ward: InputDataDetail[2].value,
       fullAddress: InputDataDetail[3].value,
       phone: InputDataDetail[4].value,
     };
-    axios
-      .post(`${process.env.REACT_APP_BASE_URL}/adminSys/shop`, addressUser, {
-        headers: {
-          Authorization:
-            'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI2NDJjMmVlMjAxN2M0MTUyYmRmMzJiZGUiLCJmaXJzdE5hbWUiOiJhZG1pblN5c3RlbSIsImxhc3ROYW1lIjoiYWRtaW5TeXN0ZW0iLCJyb2xlIjoiYWRtaW5TeXN0ZW0iLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjgwODAvYXBpL2xvZ2luIiwiaWQiOiJhZG1pblN5c3RlbSIsImV4cCI6MTY4MTkxMzE4OCwiZW1haWwiOiJhZG1pblN5c3RlbSIsImF2dCI6ImFkbWluU3lzdGVtIn0.PjLl3k6XB8zD3cGbOTycjnDPnGSsOxdE2SNKh7SxTPs',
-        },
-      })
-      .then((resp) => {
-        setLoading(false);
-      });
+    const resp = await userService.addStore(addressStore);
+    setLoading(false);
+    console.log(resp);
+    if (resp.status === 201) {
+      successPopUp('Add Store successfully.');
+    } else {
+      failPopUp(resp.data);
+    }
   };
 
   return (
