@@ -7,6 +7,7 @@ import {
   ImageList,
   ImageListItem,
   MenuItem,
+  Modal,
   Paper,
   Select,
   Table,
@@ -28,9 +29,19 @@ import userService from '../../services/user.service';
 import { failPopUp, successPopUp } from '../../services/toast-up';
 
 export function AddProduct() {
-  const [images, setImages] = useState([]);
+  const [imageOptions, setImageOptions] = useState([]);
+  const [image, setImage] = useState();
   const [productOptions, setProductOptions] = useState([]);
   const [specs, setSpecs] = useState([]);
+  const [modalId, setModalId] = useState();
+  const [open, setOpen] = useState(false);
+  const handleOpen = (index) => {
+    console.log(index);
+    console.log(productOptions[index]);
+    setModalId(index);
+    setOpen(true);
+  };
+  const handleClose = () => setOpen(false);
 
   const [initData, setInitData] = useState({});
   useEffect(() => {
@@ -42,14 +53,25 @@ export function AddProduct() {
     fetchInitData();
   }, []);
 
-  const handleMultipleImages = (evnt) => {
+  const handleMultipleImages = (event) => {
     const selectedFIles = [];
-    const targetFiles = evnt.target.files;
+    const targetFiles = event.target.files;
     const targetFilesObject = [...targetFiles];
     targetFilesObject.map((file) => {
       return selectedFIles.push(URL.createObjectURL(file));
     });
-    setImages(selectedFIles);
+    setImageOptions(selectedFIles);
+  };
+
+  const handleSingleImages = (event) => {
+    const selectedFIles = [];
+    const targetFiles = event.target.files;
+    const targetFilesObject = [...targetFiles];
+    targetFilesObject.map((file) => {
+      return selectedFIles.push(URL.createObjectURL(file));
+    });
+    setImage(selectedFIles);
+    formik.setFieldValue('thumbnail', selectedFIles);
   };
 
   const converToSpecObj = () => {
@@ -82,7 +104,7 @@ export function AddProduct() {
       name: commonValues.name,
       description: commonValues.description,
       video: commonValues.video,
-      // thumbnail: commonValues.image,
+      thumbnail: commonValues.thumbnail,
       category: {
         slug: commonValues.category,
       },
@@ -106,7 +128,7 @@ export function AddProduct() {
     initialValues: {
       name: '',
       video: '',
-      thumb: '',
+      thumbnail: '',
       category: '',
       description: '',
       brand: '',
@@ -124,6 +146,7 @@ export function AddProduct() {
     },
     onSubmit: (values) => {
       setSpecs([...specs, values]);
+      spectsForm.resetForm();
     },
   });
 
@@ -136,10 +159,11 @@ export function AddProduct() {
       pictures: [],
     },
     onSubmit: (values) => {
-      values.pictures = [values.pictures];
+      values.pictures = [imageOptions];
       setProductOptions((prev) => [...prev, values]);
-      formik.setFieldValue('productOptions', productOptions);
       productOptionForm.resetForm();
+      setImageOptions([]);
+      document.getElementById('imageOption').value = '';
     },
   });
 
@@ -165,33 +189,37 @@ export function AddProduct() {
             >
               <label htmlFor="name">*Thumbnail sản phẩm</label>
             </Box>
-            <Box>
+            <div>
               <FormControl
                 sx={{
-                  flexBasis: '650px',
                   width: '650px',
-                  maxWidth: '650px',
+                  flexDirection: 'row',
+                  gap: '16px',
                 }}
-                fullWidth
               >
                 <label htmlFor="thumb" className="custom-input-image">
-                  <div className="custom-input-image-body">
-                    <AddPhotoAlternateOutlinedIcon />
-                    Thêm Thumbnail
-                  </div>
+                  {!image ? (
+                    <div className="custom-input-image-body">
+                      <AddPhotoAlternateOutlinedIcon />
+                      Thêm Thumbnail
+                    </div>
+                  ) : (
+                    <div className="custom-input-image-body">
+                      <AddPhotoAlternateOutlinedIcon />
+                      Đổi Thumbnail
+                    </div>
+                  )}
                 </label>
-                <input onChange={handleMultipleImages} id="thumb" name="thumb" type="file" hidden />
-                {images.length > 0 && (
-                  <ImageList sx={{ width: 650, height: 450 }} cols={3} rowHeight={164}>
-                    {images.map((item) => (
-                      <ImageListItem key={item}>
-                        <img src={`${item}`} srcSet={`${item}`} alt="tes" loading="lazy" />
-                      </ImageListItem>
-                    ))}
-                  </ImageList>
+                {image && (
+                  <div className={'custom-input-image border-none'}>
+                    <div className="custom-input-image-body__img">
+                      <img src={`${image}`} srcSet={`${image}`} alt="tes" loading="lazy" />
+                    </div>
+                  </div>
                 )}
+                <input onChange={handleSingleImages} id="thumb" name="thumb" type="file" hidden />
               </FormControl>
-            </Box>
+            </div>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
@@ -452,8 +480,11 @@ export function AddProduct() {
               </Box>
             </Grid>
             <Grid item xs={6}>
+              <Button size="small" color="primary" sx={{ marginRight: 2 }} onClick={spectsForm.resetForm}>
+                Làm mới
+              </Button>
               <Button size="small" color="primary" variant="contained" onClick={spectsForm.handleSubmit}>
-                Thêm Thông số kỹ thuật
+                Thêm thông số kỹ thuật
               </Button>
             </Grid>
           </Grid>
@@ -488,36 +519,67 @@ export function AddProduct() {
           <Typography sx={{ fontSize: '24px', fontWeight: '600', marginBottom: '16px' }}>Thông tin bán hàng</Typography>
           <Grid container spacing={2}>
             {inputPrice.map((item, index) => (
-              <Grid key={index} item xs={6}>
-                <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'start',
-                      marginRight: 2,
-                      fontSize: '14px',
-                      width: 140,
-                    }}
-                  >
-                    <label htmlFor={item.key}>{item.name}</label>
+              <>
+                <Grid key={index} item xs={6}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', marginBottom: 3 }}>
+                    {!item?.isImage ? (
+                      <>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'start',
+                            marginRight: 2,
+                            fontSize: '14px',
+                            width: 140,
+                          }}
+                        >
+                          <label htmlFor={item.key}>{item.name}</label>
+                        </Box>
+                        <TextField
+                          sx={{
+                            width: '100%',
+                          }}
+                          size="small"
+                          id={item.key}
+                          name={item.key}
+                          value={productOptionForm.values[item.key]}
+                          onChange={productOptionForm.handleChange}
+                          error={productOptionForm.touched[item.key] && Boolean(productOptionForm.errors[item.key])}
+                          helperText={productOptionForm.touched[item.key] && productOptionForm.errors[item.key]}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            justifyContent: 'start',
+                            marginRight: 2,
+                            fontSize: '14px',
+                            width: 140,
+                          }}
+                        >
+                          <label htmlFor={item.key}>{item.name}</label>
+                        </Box>
+                        {/* <label htmlFor="imageOption">test</label> */}
+                        <input onChange={handleMultipleImages} id="imageOption" name="thumb" type="file" multiple />
+                      </>
+                    )}
                   </Box>
-                  <TextField
-                    sx={{
-                      width: '100%',
-                    }}
-                    size="small"
-                    id={item.key}
-                    name={item.key}
-                    value={productOptionForm.values[item.key]}
-                    onChange={productOptionForm.handleChange}
-                    error={productOptionForm.touched[item.key] && Boolean(productOptionForm.errors[item.key])}
-                    helperText={productOptionForm.touched[item.key] && productOptionForm.errors[item.key]}
-                  />
-                </Box>
-              </Grid>
+                </Grid>
+              </>
             ))}
             <Grid item xs={6}>
-              <Button size="small" color="primary" sx={{ marginRight: 2 }} onClick={productOptionForm.resetForm}>
+              <Button
+                size="small"
+                color="primary"
+                sx={{ marginRight: 2 }}
+                onClick={() => {
+                  setImageOptions([]);
+                  document.getElementById('imageOption').value = '';
+                  productOptionForm.resetForm();
+                }}
+              >
                 Làm mới
               </Button>
               <Button size="small" color="primary" variant="contained" onClick={productOptionForm.handleSubmit}>
@@ -538,19 +600,20 @@ export function AddProduct() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {productOptions.map((row) => (
-                    <TableRow key={row.name} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell align="center" component="th" scope="row">
-                        {row.optionName}
-                      </TableCell>
-                      <TableCell align="center">{row.color}</TableCell>
-                      <TableCell align="center">{row.marketPrice}</TableCell>
-                      <TableCell align="center">{row.promotion}</TableCell>
-                      <TableCell align="center">
-                        <img src={row.image} alt={row.optionName} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {productOptions.length > 0 &&
+                    productOptions.map((row, index) => (
+                      <TableRow key={row.name} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell align="center" component="th" scope="row">
+                          {row.optionName}
+                        </TableCell>
+                        <TableCell align="center">{row.color}</TableCell>
+                        <TableCell align="center">{row.marketPrice}</TableCell>
+                        <TableCell align="center">{row.promotion}</TableCell>
+                        <TableCell align="center">
+                          <Button onClick={() => handleOpen(index)}>Open modal</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             </TableContainer>
@@ -566,9 +629,35 @@ export function AddProduct() {
           </Button>
         </div>
       </form>
+
+      <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
+        <Box sx={style}>
+          <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+            {productOptions.length > 0 &&
+              open &&
+              productOptions[modalId].pictures[0].map((item) => (
+                <ImageListItem key={item}>
+                  <img src={`${item}`} srcSet={`${item}`} alt="test" loading="lazy" />
+                </ImageListItem>
+              ))}
+          </ImageList>
+        </Box>
+      </Modal>
     </>
   );
 }
+
+const style = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  width: 400,
+  bgcolor: 'background.paper',
+  border: '2px solid #000',
+  boxShadow: 24,
+  p: 4,
+};
 
 var inputDataDetail = [
   {
@@ -643,5 +732,6 @@ var inputPrice = [
     key: 'pictures',
     value: '',
     isRequired: false,
+    isImage: true,
   },
 ];
