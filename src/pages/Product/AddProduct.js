@@ -504,8 +504,8 @@ export function AddProduct() {
                       <TableCell align="center" component="th" scope="row">
                         {spec.specGroup}
                       </TableCell>
-                      <TableCell align="center">{spec.specValue}</TableCell>
                       <TableCell align="center">{spec.tskt}</TableCell>
+                      <TableCell align="center">{spec.specValue}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
