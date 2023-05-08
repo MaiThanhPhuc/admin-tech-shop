@@ -27,21 +27,40 @@ import './Product.scss';
 import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternateOutlined';
 import userService from '../../services/user.service';
 import { failPopUp, successPopUp } from '../../services/toast-up';
-
+import ClearIcon from '@mui/icons-material/Clear';
 export function AddProduct() {
   const [imageOptions, setImageOptions] = useState([]);
   const [image, setImage] = useState();
   const [productOptions, setProductOptions] = useState([]);
   const [specs, setSpecs] = useState([]);
+  const [modalData, setModalData] = useState();
   const [modalId, setModalId] = useState();
+
+  const [description, setDescription] = useState('');
+
   const [open, setOpen] = useState(false);
   const handleOpen = (index) => {
-    console.log(index);
-    console.log(productOptions[index]);
+    setModalData(productOptions[index].pictures);
     setModalId(index);
     setOpen(true);
   };
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setProductOptions(
+      productOptions.map((item, index) => {
+        if (index !== modalId) return item;
+
+        return {
+          ...item,
+          pictures: modalData,
+        };
+      }),
+    );
+    setOpen(false);
+  };
+
+  const handleChangeDes = (content, delta, source, editor) => {
+    setDescription(editor.getHTML());
+  };
 
   const [initData, setInitData] = useState({});
   useEffect(() => {
@@ -134,6 +153,8 @@ export function AddProduct() {
       brand: '',
     },
     onSubmit: (values) => {
+      values.description = description;
+      values.thumbnail = image;
       addProduct(values, specs, productOptions);
     },
   });
@@ -159,7 +180,7 @@ export function AddProduct() {
       pictures: [],
     },
     onSubmit: (values) => {
-      values.pictures = [imageOptions];
+      values.pictures = imageOptions;
       setProductOptions((prev) => [...prev, values]);
       productOptionForm.resetForm();
       setImageOptions([]);
@@ -313,10 +334,10 @@ export function AddProduct() {
                   maxWidth: '650px',
                   height: 300,
                 }}
-                value={formik.values.description}
-                onChange={formik.handleChange}
-                error={formik.touched.description && Boolean(formik.errors.description)}
-                helperText={formik.touched.description && formik.errors.description}
+                value={description}
+                onChange={handleChangeDes}
+                modules={modules}
+                formats={formats}
               />
             </Box>
           </Box>
@@ -542,6 +563,7 @@ export function AddProduct() {
                           size="small"
                           id={item.key}
                           name={item.key}
+                          type={item.isNumber ? 'number' : 'text'}
                           value={productOptionForm.values[item.key]}
                           onChange={productOptionForm.handleChange}
                           error={productOptionForm.touched[item.key] && Boolean(productOptionForm.errors[item.key])}
@@ -587,7 +609,7 @@ export function AddProduct() {
               </Button>
             </Grid>
           </Grid>
-          {productOptions.length > 0 && (
+          {productOptions && productOptions.length > 0 && (
             <TableContainer component={Paper}>
               <Table sx={{ minWidth: 650 }} aria-label="simple table">
                 <TableHead>
@@ -610,7 +632,7 @@ export function AddProduct() {
                         <TableCell align="center">{row.marketPrice}</TableCell>
                         <TableCell align="center">{row.promotion}</TableCell>
                         <TableCell align="center">
-                          <Button onClick={() => handleOpen(index)}>Open modal</Button>
+                          {row.pictures && row.pictures.length > 0 && <Button onClick={() => handleOpen(index)}>Xem hình ảnh</Button>}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -632,15 +654,24 @@ export function AddProduct() {
 
       <Modal open={open} onClose={handleClose} aria-labelledby="modal-modal-title" aria-describedby="modal-modal-description">
         <Box sx={style}>
-          <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
-            {productOptions.length > 0 &&
+          <Grid container spacing={2} className="modal-container-image">
+            {productOptions &&
               open &&
-              productOptions[modalId].pictures[0].map((item) => (
-                <ImageListItem key={item}>
-                  <img src={`${item}`} srcSet={`${item}`} alt="test" loading="lazy" />
-                </ImageListItem>
+              modalData.map((item, index) => (
+                <Grid key={index} item xs={3} className="modal-container-image__wrapper ">
+                  <div
+                    onClick={() => {
+                      const filterImage = modalData.filter((tmp, index2) => index2 !== index);
+                      setModalData(filterImage);
+                    }}
+                    className="delete-button"
+                  >
+                    <ClearIcon />
+                  </div>
+                  <img src={item} alt="test" loading="lazy" />
+                </Grid>
               ))}
-          </ImageList>
+          </Grid>
         </Box>
       </Modal>
     </>
@@ -652,55 +683,13 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: 800,
+  height: 600,
   bgcolor: 'background.paper',
   border: '2px solid #000',
   boxShadow: 24,
   p: 4,
 };
-
-var inputDataDetail = [
-  {
-    name: '*Thương hiệu',
-    key: 'brand',
-    value: '',
-    isOption: true,
-    optionValue: ['apple', 'samsung'],
-  },
-  {
-    name: 'Dung lượng pin',
-    key: 'battery',
-    value: '',
-  },
-  {
-    name: 'Dung lượng lưu trữ',
-    key: 'memory',
-    value: '',
-    isOption: true,
-    optionValue: ['512GB', '128GB', '256GB'],
-  },
-  {
-    name: 'Kích thước màn hình',
-    key: 'displaySize',
-    value: '',
-    isOption: true,
-    optionValue: ['5.5inches', '5.8inches', '6inches'],
-  },
-  {
-    name: 'Độ phân giải camera chính',
-    key: 'cameraResolution',
-    value: '',
-    isOption: true,
-    optionValue: ['12MP', '124MP', '24MP'],
-  },
-  {
-    name: 'RAM',
-    key: 'ram',
-    value: '',
-    isOption: true,
-    optionValue: ['8GB', '32GB', '64GB'],
-  },
-];
 
 var inputPrice = [
   {
@@ -720,6 +709,7 @@ var inputPrice = [
     key: 'marketPrice',
     value: '',
     isRequired: true,
+    isNumber: true,
   },
   {
     name: 'Khuyến mãi',
@@ -734,4 +724,34 @@ var inputPrice = [
     isRequired: false,
     isImage: true,
   },
+];
+
+const modules = {
+  toolbar: [
+    //[{ 'font': [] }],
+    [{ header: [1, 2, false] }],
+    ['bold', 'italic', 'underline', 'strike', 'blockquote'],
+    [{ list: 'ordered' }, { list: 'bullet' }, { indent: '-1' }, { indent: '+1' }],
+    ['link', 'image'],
+    [{ align: [] }, { color: [] }, { background: [] }], // dropdown with defaults from theme
+    ['clean'],
+  ],
+};
+
+const formats = [
+  //'font',
+  'header',
+  'bold',
+  'italic',
+  'underline',
+  'strike',
+  'blockquote',
+  'list',
+  'bullet',
+  'indent',
+  'link',
+  'image',
+  'align',
+  'color',
+  'background',
 ];
