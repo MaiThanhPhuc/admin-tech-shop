@@ -1,6 +1,8 @@
 import {
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
   Container,
   FormControl,
   Grid,
@@ -28,8 +30,11 @@ import AddPhotoAlternateOutlinedIcon from '@mui/icons-material/AddPhotoAlternate
 import userService from '../../services/user.service';
 import { failPopUp, successPopUp } from '../../services/toast-up';
 import ClearIcon from '@mui/icons-material/Clear';
+import DriveFolderUploadIcon from '@mui/icons-material/DriveFolderUpload';
 export function AddProduct() {
   const [imageOptions, setImageOptions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // const [imageUrls, setImageUrls] = useState([]);
   const [image, setImage] = useState();
   const [productOptions, setProductOptions] = useState([]);
   const [specs, setSpecs] = useState([]);
@@ -72,25 +77,50 @@ export function AddProduct() {
     fetchInitData();
   }, []);
 
-  const handleMultipleImages = (event) => {
+  const handleMultipleImages = async (event) => {
+    setLoading(true);
     const selectedFIles = [];
     const targetFiles = event.target.files;
     const targetFilesObject = [...targetFiles];
+    var formdata = new FormData();
     targetFilesObject.map((file) => {
+      formdata.append('imgs', file);
       return selectedFIles.push(URL.createObjectURL(file));
     });
-    setImageOptions(selectedFIles);
+
+    const resp = await userService.generateImageUrl(formdata);
+    if (resp.status === 200) {
+      setImageOptions(resp.data);
+      setLoading(false);
+    } else {
+      setLoading(false);
+      failPopUp('Thêm ảnh không thành công');
+    }
+    console.log(resp);
+    Array.from(event.target.files).map((img) => URL.revokeObjectURL(img));
   };
 
-  const handleSingleImages = (event) => {
+  const handleSingleImages = async (event) => {
+    setLoading(true);
     const selectedFIles = [];
     const targetFiles = event.target.files;
     const targetFilesObject = [...targetFiles];
+    var formdata = new FormData();
     targetFilesObject.map((file) => {
+      formdata.append('imgs', file);
       return selectedFIles.push(URL.createObjectURL(file));
     });
-    setImage(selectedFIles);
-    formik.setFieldValue('thumbnail', selectedFIles);
+
+    const resp = await userService.generateImageUrl(formdata);
+    if (resp.status === 200) {
+      formik.setFieldValue('thumbnail', resp.data[0]);
+      setImage(resp.data[0]);
+      setLoading(false);
+    } else {
+      setLoading(false);
+      failPopUp('Thêm ảnh không thành công');
+    }
+    Array.from(event.target.files).map((img) => URL.revokeObjectURL(img));
   };
 
   const converToSpecObj = () => {
@@ -154,7 +184,6 @@ export function AddProduct() {
     },
     onSubmit: (values) => {
       values.description = description;
-      values.thumbnail = image;
       addProduct(values, specs, productOptions);
     },
   });
@@ -319,7 +348,7 @@ export function AddProduct() {
                 fontSize: '14px',
               }}
             >
-              <label htmlFor="name">*Mô tả sản phẩm</label>
+              <label htmlFor="description">*Mô tả sản phẩm</label>
             </Box>
             <Box>
               <ReactQuill
@@ -576,6 +605,7 @@ export function AddProduct() {
                           sx={{
                             display: 'flex',
                             justifyContent: 'start',
+                            alignItems: 'center',
                             marginRight: 2,
                             fontSize: '14px',
                             width: 140,
@@ -583,8 +613,12 @@ export function AddProduct() {
                         >
                           <label htmlFor={item.key}>{item.name}</label>
                         </Box>
+                        {/* <label htmlFor="imageOption">
+
+                          <DriveFolderUploadIcon />
+                        </label> */}
+                        <input onChange={handleMultipleImages} id="imageOption" name="imageOption" type="file" multiple />
                         {/* <label htmlFor="imageOption">test</label> */}
-                        <input onChange={handleMultipleImages} id="imageOption" name="thumb" type="file" multiple />
                       </>
                     )}
                   </Box>
@@ -632,7 +666,7 @@ export function AddProduct() {
                         <TableCell align="center">{row.marketPrice}</TableCell>
                         <TableCell align="center">{row.promotion}</TableCell>
                         <TableCell align="center">
-                          {row.pictures && row.pictures.length > 0 && <Button onClick={() => handleOpen(index)}>Xem hình ảnh</Button>}
+                          <Button onClick={() => handleOpen(index)}>Xem hình ảnh</Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -674,6 +708,10 @@ export function AddProduct() {
           </Grid>
         </Box>
       </Modal>
+
+      <Backdrop sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }} open={loading}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </>
   );
 }
@@ -716,6 +754,7 @@ var inputPrice = [
     key: 'promotion',
     value: '',
     isRequired: false,
+    isNumber: true,
   },
   {
     name: 'Hình ảnh',

@@ -44,6 +44,14 @@ class UserService {
 
     return generateRespObj(resp.status, resp.data.message, resp.data.data);
   }
+
+  async generateImageUrl(data) {
+    const resp = await axios.post(`${API_URL}/adminSys/image`, data, {
+      headers: authHeader(),
+    });
+
+    return generateRespObj(resp.status, resp.data.message, resp.data.data);
+  }
 }
 
 export default new UserService();
